@@ -1,13 +1,31 @@
 package util;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.lang.management.BufferPoolMXBean;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HttpRequestUtils {
+    private static final Logger log = LoggerFactory.getLogger(HttpRequestUtils.class);
+
+    public void readHeader(BufferedReader br) throws IOException {
+        String line = null;
+        while(!"".equals(line)) {
+            line = br.readLine();
+            log.debug("request line : {}", line);
+        }
+    }
+
+    public static String getMethod (String value, String sep) {
+        return value.split(sep)[0];
+    }
 
     public static String getUrl (String value, String sep) {
         return value.split(sep)[1];
@@ -52,6 +70,23 @@ public class HttpRequestUtils {
         }
 
         return new Pair(tokens[0], tokens[1]);
+    }
+
+    public static int getContentLength (Pair pair) {
+        if (pair != null && "Content-Length".equals(pair.getKey())) {
+            return Integer.parseInt(pair.getValue().trim());
+        }
+
+        return -1;
+    }
+
+    public static String getContentType (Pair pair) {
+        String contentType = "text/html";
+        if (pair != null && "Accept".equals(pair.getKey())) {
+            contentType = pair.getValue().split(",")[0];
+        }
+
+        return contentType;
     }
 
     public static Pair parseHeader(String header) {

@@ -77,4 +77,24 @@ public class HttpRequestUtilsTest {
         String url = HttpRequestUtils.getUrl(getHeader, " ");
         assertEquals("/index.html", url);
     }
+
+
+
+    @Test
+    public void getContentType () {
+        String header = "Accept: text/css,*/*;q=0.1";
+        Pair pair = HttpRequestUtils.parseHeader(header);
+        String accept = HttpRequestUtils.getContentType(pair);
+        assertEquals("text/css", accept);
+    }
+
+    @Test
+    public void getMethod () {
+        String header = "POST /user/create HTTP/1.1";
+        String method = HttpRequestUtils.getMethod(header, " ");
+
+        assertEquals("POST", method);
+    }
+
+
 }
