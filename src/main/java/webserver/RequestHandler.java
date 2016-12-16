@@ -47,56 +47,32 @@ public class RequestHandler extends Thread {
             String url = HttpRequestUtils.getUrl(line, " ");
             String method = HttpRequestUtils.getMethod(line, " ");
 
+            String requestPath = url;
+
             // setHeader
             HttpHeaderUtil.setHeader(br);
 
-
-            String requestPath = url;
-            String contentType = "empty";
-            // header 먼저 collection
-
-
             if ("GET".equals(method)) {
                 body = Files.readAllBytes(new File("./webapp" + requestPath).toPath());
-                while(!"".equals(line)) {
-                    line = br.readLine();
-                    HttpRequestUtils.Pair pair = HttpRequestUtils.parseHeader(line);
-                    contentType = HttpRequestUtils.getContentType(pair);
-                    if (!"empty".equals(contentType)) {
-                        break;
-                    }
-                    log.debug("request line : {}", line);
-                }
 
                 DataOutputStream dos = new DataOutputStream(out);
-                response200Header(dos, body.length, contentType);
+                response200Header(dos, body.length, HttpHeaderUtil.HEADER_DATA.get("Accept"));
                 responseBody(dos, body);
             }
 
             if ("POST".equals(method)) {
-                int length = -1;
-                while(!"".equals(line)) {
-                    line = br.readLine();
-                    HttpRequestUtils.Pair pair = HttpRequestUtils.parseHeader(line);
-                    length = HttpRequestUtils.getContentLength(pair);
-                    if (length != -1) {
-                        while(!"".equals(line)) {
-                            line = br.readLine();
-                        }
-                    }
-                    log.debug("request line : {}", line);
-                }
+                int contentLength = Integer.parseInt(HttpHeaderUtil.HEADER_DATA.get("Content-Length"));
 
-                String data = util.IOUtils.readData(br, length);
+                String data = util.IOUtils.readData(br, contentLength);
                 Map<String, String> map = HttpRequestUtils.parseQueryString(data);
                 User user = new User(map.get("userId"), map.get("password"), map.get("name"), map.get("email"));
                 DataBase.addUser(user);
+
                 log.debug("{}", DataBase.findAll());
 
                 DataOutputStream dos = new DataOutputStream(out);
-                response302Header(dos);
+                response302Header(dos, HttpHeaderUtil.HEADER_DATA.get("Accept"));
             }
-
 
         } catch (IOException e) {
             log.error(e.getMessage());
@@ -114,9 +90,10 @@ public class RequestHandler extends Thread {
         }
     }
 
-    private void response302Header(DataOutputStream dos) {
+    private void response302Header(DataOutputStream dos, String contentType) {
         try {
             dos.writeBytes("HTTP/1.1 302 Found \r\n");
+            dos.writeBytes("Content-Type: " +  contentType+ ";charset=utf-8\r\n");
             dos.writeBytes("Location: " + "http://localhost:8080/index.html");
             dos.writeBytes("\r\n");
         } catch (IOException e) {

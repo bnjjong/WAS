@@ -66,23 +66,6 @@ public class HttpRequestUtils {
         return new Pair(tokens[0], tokens[1]);
     }
 
-    public static int getContentLength (Pair pair) {
-        if (pair != null && "Content-Length".equals(pair.getKey())) {
-            return Integer.parseInt(pair.getValue().trim());
-        }
-
-        return -1;
-    }
-
-    public static String getContentType (Pair pair) {
-        String contentType = "text/html";
-        if (pair != null && "Accept".equals(pair.getKey())) {
-            contentType = pair.getValue().split(",")[0];
-        }
-
-        return contentType;
-    }
-
     public static Pair parseHeader(String header) {
         return getKeyValue(header, ": ");
     }

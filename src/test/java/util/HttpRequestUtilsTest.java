@@ -1,13 +1,15 @@
 package util;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.util.Map;
 
-import org.junit.Test;
-
 import util.HttpRequestUtils.Pair;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 public class HttpRequestUtilsTest {
     @Test
@@ -79,15 +81,6 @@ public class HttpRequestUtilsTest {
     }
 
 
-
-    @Test
-    public void getContentType () {
-        String header = "Accept: text/css,*/*;q=0.1";
-        Pair pair = HttpRequestUtils.parseHeader(header);
-        String accept = HttpRequestUtils.getContentType(pair);
-        assertEquals("text/css", accept);
-    }
-
     @Test
     public void getMethod () {
         String header = "POST /user/create HTTP/1.1";
@@ -95,6 +88,5 @@ public class HttpRequestUtilsTest {
 
         assertEquals("POST", method);
     }
-
 
 }
