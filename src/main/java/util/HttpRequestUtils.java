@@ -15,21 +15,15 @@ import org.slf4j.LoggerFactory;
 public class HttpRequestUtils {
     private static final Logger log = LoggerFactory.getLogger(HttpRequestUtils.class);
 
-    public void readHeader(BufferedReader br) throws IOException {
-        String line = null;
-        while(!"".equals(line)) {
-            line = br.readLine();
-            log.debug("request line : {}", line);
-        }
+
+    public static String getUrl (String value, String sep) {
+        return value.split(sep)[1];
     }
 
     public static String getMethod (String value, String sep) {
         return value.split(sep)[0];
     }
 
-    public static String getUrl (String value, String sep) {
-        return value.split(sep)[1];
-    }
 
     /**
      * @param queryString은
