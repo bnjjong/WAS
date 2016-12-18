@@ -23,7 +23,7 @@ public class HttpResponse {
         dataOutputStream = new DataOutputStream(outputStream);
     }
 
-    public void foward (String url, String contentType) throws IOException {
+    public void forward (String url, String contentType) throws IOException {
         byte[] body =  Files.readAllBytes(new File("./webapp" + url).toPath());
 
         this.addHeader("Content-Length", body.length + "");
