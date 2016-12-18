@@ -16,25 +16,18 @@ import java.util.Map;
  */
 public class HttpResponse {
     private static final Logger log = LoggerFactory.getLogger(HttpResponse.class);
-    private static DataOutputStream dataOutputStream ;
+    private DataOutputStream dataOutputStream ;
     private Map<String, String> responseHeader = new HashMap<>();;
 
     public HttpResponse (OutputStream outputStream) {
         dataOutputStream = new DataOutputStream(outputStream);
     }
 
-    public void foward (String url) throws IOException {
+    public void foward (String url, String contentType) throws IOException {
         byte[] body =  Files.readAllBytes(new File("./webapp" + url).toPath());
 
-        if (url.endsWith(".css")) {
-            this.addHeader("Content-Type", "text/css");
-        } else if (url.endsWith(".js")) {
-            this.addHeader("Content-Type", "application/javascript");
-        } else {
-            this.addHeader("Content-Type", "text/html;charset=utf-8");
-        }
-
         this.addHeader("Content-Length", body.length + "");
+        this.addHeader("Content-Type", contentType);
         this.response200Header();
         this.responseBody(body);
     }

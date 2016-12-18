@@ -19,7 +19,7 @@ public class HttpRequest {
 
     private static final Logger log = LoggerFactory.getLogger(HttpRequest.class);
 
-    private static BufferedReader bufferedReader;
+    private BufferedReader bufferedReader;
 
     private Map<String, String> requestHeader = new HashMap<>();
     private Map<String, String> requestParameter;
@@ -36,15 +36,14 @@ public class HttpRequest {
      */
     public HttpRequest(InputStream inputStream) throws IOException {
         bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-        requestParameter = new HashMap<>();
 
         String lineOfMethodAndUrl = bufferedReader.readLine();
+        log.debug("request line : {}", lineOfMethodAndUrl);
 
         if (lineOfMethodAndUrl == null) {
             return;
         }
 
-        log.debug("request line : {}", lineOfMethodAndUrl);
         this.setRequestUrl(lineOfMethodAndUrl);
         this.setRequestMethod(lineOfMethodAndUrl);
         this.setRequestPath();
@@ -66,7 +65,6 @@ public class HttpRequest {
     }
 
     private void setRequestHeader (String line) throws IOException {
-
         while(!line.equals("")) {
             line = bufferedReader.readLine();
             log.debug("request line : {}", line);
