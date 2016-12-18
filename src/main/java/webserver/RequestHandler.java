@@ -42,7 +42,7 @@ public class RequestHandler extends Thread {
             // getUrl
             String line = br.readLine();
             log.debug("request line : {}", line);
-            if(line == null) {
+            if (line == null) {
                 return;
             }
 
@@ -55,8 +55,19 @@ public class RequestHandler extends Thread {
             HttpHeaderUtil.setHeader(br);
 
             if ("GET".equals(method)) {
+
+                if (requestPath.contains("user/list")) {
+                    String loginedCookie = HttpHeaderUtil.HEADER_DATA.get("Cookie");
+                    log.debug("Cookie - {}", loginedCookie);
+                    boolean logined = Boolean.parseBoolean(HttpRequestUtils.parseCookies(loginedCookie).get("logined"));
+
+                    if (!logined) {
+                        requestPath = "/user/login.html";
+                    }
+                }
+
                 body = Files.readAllBytes(new File("./webapp" + requestPath).toPath());
-                
+
                 DataOutputStream dos = new DataOutputStream(out);
                 response200Header(dos, body.length, HttpHeaderUtil.HEADER_DATA.get("Accept"));
                 responseBody(dos, body);
@@ -107,7 +118,7 @@ public class RequestHandler extends Thread {
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent, String contentType) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: " +  contentType+ ";charset=utf-8\r\n");
+            dos.writeBytes("Content-Type: " + contentType + ";charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
@@ -118,7 +129,7 @@ public class RequestHandler extends Thread {
     private void response302Header(DataOutputStream dos, String location, String contentType) {
         try {
             dos.writeBytes("HTTP/1.1 302 Found \r\n");
-            dos.writeBytes("Content-Type: " +  contentType+ ";charset=utf-8\r\n");
+            dos.writeBytes("Content-Type: " + contentType + ";charset=utf-8\r\n");
             dos.writeBytes("Location: " + location + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
@@ -129,7 +140,7 @@ public class RequestHandler extends Thread {
     private void response302LoginSuccessHeader(DataOutputStream dos, String location, String contentType) {
         try {
             dos.writeBytes("HTTP/1.1 302 Found \r\n");
-            dos.writeBytes("Content-Type: " +  contentType+ ";charset=utf-8\r\n");
+            dos.writeBytes("Content-Type: " + contentType + ";charset=utf-8\r\n");
             dos.writeBytes("Location: " + location + "\r\n");
             dos.writeBytes("Set-Cookie: logined=true");
             dos.writeBytes("\r\n");
