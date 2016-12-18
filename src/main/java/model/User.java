@@ -13,6 +13,14 @@ public class User {
         this.email = email;
     }
 
+    public boolean matchPassword (User loginUser) {
+        if (loginUser != null && this.password.equals(loginUser.password)) {
+            return true;
+        }
+
+        return false;
+    }
+
     public String getUserId() {
         return userId;
     }

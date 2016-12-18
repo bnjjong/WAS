@@ -19,6 +19,8 @@ import model.User;
 import util.HttpHeaderUtil;
 import util.HttpRequestUtils;
 
+import javax.xml.crypto.Data;
+
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 
@@ -54,7 +56,7 @@ public class RequestHandler extends Thread {
 
             if ("GET".equals(method)) {
                 body = Files.readAllBytes(new File("./webapp" + requestPath).toPath());
-
+                
                 DataOutputStream dos = new DataOutputStream(out);
                 response200Header(dos, body.length, HttpHeaderUtil.HEADER_DATA.get("Accept"));
                 responseBody(dos, body);
@@ -66,12 +68,35 @@ public class RequestHandler extends Thread {
                 String data = util.IOUtils.readData(br, contentLength);
                 Map<String, String> map = HttpRequestUtils.parseQueryString(data);
                 User user = new User(map.get("userId"), map.get("password"), map.get("name"), map.get("email"));
-                DataBase.addUser(user);
 
-                log.debug("{}", DataBase.findAll());
+                String location = "http://localhost:8080/index.html";
+                if (requestPath.contains("/user/create")) {
+                    DataBase.addUser(user);
 
-                DataOutputStream dos = new DataOutputStream(out);
-                response302Header(dos, HttpHeaderUtil.HEADER_DATA.get("Accept"));
+                    log.debug("CREATE - {}", DataBase.findAll());
+
+                    DataOutputStream dos = new DataOutputStream(out);
+                    response302Header(dos, location, HttpHeaderUtil.HEADER_DATA.get("Accept"));
+                }
+
+                if (requestPath.contains("/user/login")) {
+                    User loginUser = DataBase.findUserById(user.getUserId());
+
+                    if (!user.matchPassword(loginUser)) {
+                        location = "http://localhost:8080/user/login_failed.html";
+
+                        log.debug("LOGIN - {}", loginUser);
+
+                        DataOutputStream dos = new DataOutputStream(out);
+                        response302LoginSuccessHeader(dos, location, HttpHeaderUtil.HEADER_DATA.get("Accept"));
+                    } else {
+                        log.debug("LOGIN - {}", loginUser);
+
+                        DataOutputStream dos = new DataOutputStream(out);
+                        response302LoginSuccessHeader(dos, location, HttpHeaderUtil.HEADER_DATA.get("Accept"));
+                    }
+                }
+
             }
 
         } catch (IOException e) {
@@ -90,11 +115,23 @@ public class RequestHandler extends Thread {
         }
     }
 
-    private void response302Header(DataOutputStream dos, String contentType) {
+    private void response302Header(DataOutputStream dos, String location, String contentType) {
         try {
             dos.writeBytes("HTTP/1.1 302 Found \r\n");
             dos.writeBytes("Content-Type: " +  contentType+ ";charset=utf-8\r\n");
-            dos.writeBytes("Location: " + "http://localhost:8080/index.html");
+            dos.writeBytes("Location: " + location + "\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    private void response302LoginSuccessHeader(DataOutputStream dos, String location, String contentType) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Found \r\n");
+            dos.writeBytes("Content-Type: " +  contentType+ ";charset=utf-8\r\n");
+            dos.writeBytes("Location: " + location + "\r\n");
+            dos.writeBytes("Set-Cookie: logined=true");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.error(e.getMessage());
