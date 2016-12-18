@@ -16,7 +16,6 @@ import java.util.Map;
  * Created by 강홍구 on 2016-12-18.
  */
 public class HttpRequest {
-
     private static final Logger log = LoggerFactory.getLogger(HttpRequest.class);
 
     private BufferedReader bufferedReader;

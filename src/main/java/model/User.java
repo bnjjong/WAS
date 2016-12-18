@@ -1,6 +1,12 @@
 package model;
 
+import db.DataBase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class User {
+    private static final Logger log = LoggerFactory.getLogger(User.class);
+
     private String userId;
     private String password;
     private String name;
@@ -13,12 +19,17 @@ public class User {
         this.email = email;
     }
 
-    public boolean matchPassword (User loginUser) {
-        if (loginUser != null && this.password.equals(loginUser.password)) {
+    public boolean matchPassword (String password) {
+        if (this.password.equals(password)) {
             return true;
         }
 
         return false;
+    }
+
+    public void saveUser () {
+        DataBase.addUser(this);
+        log.debug("SAVED RESULT - {}", DataBase.findUserById(this.userId));
     }
 
     public String getUserId() {

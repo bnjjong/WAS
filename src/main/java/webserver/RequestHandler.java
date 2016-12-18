@@ -15,10 +15,12 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 
 import db.DataBase;
 import model.User;
 import util.HttpRequestUtils;
+import util.IOUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -42,9 +44,58 @@ public class RequestHandler extends Thread {
             String method = httpRequest.getRequestMethod();
             String path = httpRequest.getRequestPath();
 
-            if ("GET".equals(method)) {
-                //HttpResponse httpResponse = new HttpResponse(out);
-                httpResponse.foward(path.trim(), httpRequest.getRequestHeader("Accept"));
+            if ("GET".equalsIgnoreCase(method)) {
+                if (path.equalsIgnoreCase("/index.html")) {
+                    httpResponse.foward(path.trim(), httpRequest.getRequestHeader("Accept"));
+                } else if ((path.equalsIgnoreCase("/user/list.html"))) {
+                    Map<String, String> cookie = HttpRequestUtils.parseCookies(httpRequest.getRequestHeader("Cookie"));
+
+                    boolean isLogined = Boolean.parseBoolean(cookie.get("logined"));
+
+                    if (!isLogined) {
+                        path = "/index.html";
+                    }
+
+                    httpResponse.foward(path.trim(), httpRequest.getRequestHeader("Accept"));
+
+                } else {
+                    httpResponse.foward(path.trim(), httpRequest.getRequestHeader("Accept"));
+                }
+            }
+
+            if ("POST".equalsIgnoreCase(method)) {
+                String location = "http://localhost:8080/index.html";
+
+                if (path.equalsIgnoreCase("/user/create")) {
+                    String userId = httpRequest.getRequestParam("userId");
+                    String password = httpRequest.getRequestParam("password");
+                    String name = httpRequest.getRequestParam("name");
+                    String email = httpRequest.getRequestParam("email");
+
+                    User newUser = new User(userId, password, name, email);
+                    newUser.saveUser();
+
+                    httpResponse.sendRedirect(location, false);
+
+                }
+
+                if (path.equalsIgnoreCase("/user/login")) {
+                    boolean isLogined = false;
+                    location = "http://localhost:8080/user/login_failed.html";
+                    String userId = httpRequest.getRequestParam("userId");
+                    String password = httpRequest.getRequestParam("password");
+
+                    User loginUser = DataBase.findUserById(userId);
+
+                    if (loginUser != null && loginUser.matchPassword(password)) {
+                        isLogined = true;
+                        location = "http://localhost:8080/index.html";
+
+                    }
+
+                    httpResponse.sendRedirect(location, isLogined);
+                }
+
             }
 
             /*if ("POST".equals(method)) {
