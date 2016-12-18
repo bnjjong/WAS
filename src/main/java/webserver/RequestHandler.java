@@ -1,5 +1,6 @@
 package webserver;
 
+import http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,10 +17,7 @@ import java.util.Map;
 
 import db.DataBase;
 import model.User;
-import util.HttpHeaderUtil;
 import util.HttpRequestUtils;
-
-import javax.xml.crypto.Data;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -39,47 +37,37 @@ public class RequestHandler extends Thread {
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             byte[] body;
 
-            // getUrl
-            String line = br.readLine();
-            log.debug("request line : {}", line);
-            if(line == null) {
-                return;
-            }
+            HttpRequest httpRequest = new HttpRequest(in);
 
-            String url = HttpRequestUtils.getUrl(line, " ");
-            String method = HttpRequestUtils.getMethod(line, " ");
-
-            String requestPath = url;
-
-            // setHeader
-            HttpHeaderUtil.setHeader(br);
+            String method = httpRequest.getRequestMethod();
+            String url = httpRequest.getRequestUrl();
 
             if ("GET".equals(method)) {
-                body = Files.readAllBytes(new File("./webapp" + requestPath).toPath());
+                body = Files.readAllBytes(new File("./webapp" + url).toPath());
                 
                 DataOutputStream dos = new DataOutputStream(out);
-                response200Header(dos, body.length, HttpHeaderUtil.HEADER_DATA.get("Accept"));
+                response200Header(dos, body.length, httpRequest.getRequestHeader("Accept"));
                 responseBody(dos, body);
             }
 
             if ("POST".equals(method)) {
-                int contentLength = Integer.parseInt(HttpHeaderUtil.HEADER_DATA.get("Content-Length"));
+                int contentLength = Integer.parseInt(httpRequest.getRequestHeader("Content-Length"));
 
                 String data = util.IOUtils.readData(br, contentLength);
                 Map<String, String> map = HttpRequestUtils.parseQueryString(data);
                 User user = new User(map.get("userId"), map.get("password"), map.get("name"), map.get("email"));
 
                 String location = "http://localhost:8080/index.html";
-                if (requestPath.contains("/user/create")) {
+                if (url.contains("/user/create")) {
                     DataBase.addUser(user);
 
                     log.debug("CREATE - {}", DataBase.findAll());
 
                     DataOutputStream dos = new DataOutputStream(out);
-                    response302Header(dos, location, HttpHeaderUtil.HEADER_DATA.get("Accept"));
+                    response302Header(dos, location, httpRequest.getRequestHeader("Accept"));
                 }
 
-                if (requestPath.contains("/user/login")) {
+                if (url.contains("/user/login")) {
                     User loginUser = DataBase.findUserById(user.getUserId());
 
                     if (!user.matchPassword(loginUser)) {
@@ -88,12 +76,12 @@ public class RequestHandler extends Thread {
                         log.debug("LOGIN - {}", loginUser);
 
                         DataOutputStream dos = new DataOutputStream(out);
-                        response302LoginSuccessHeader(dos, location, HttpHeaderUtil.HEADER_DATA.get("Accept"));
+                        response302LoginSuccessHeader(dos, location, httpRequest.getRequestHeader("Accept"));
                     } else {
                         log.debug("LOGIN - {}", loginUser);
 
                         DataOutputStream dos = new DataOutputStream(out);
-                        response302LoginSuccessHeader(dos, location, HttpHeaderUtil.HEADER_DATA.get("Accept"));
+                        response302LoginSuccessHeader(dos, location, httpRequest.getRequestHeader("Accept"));
                     }
                 }
 

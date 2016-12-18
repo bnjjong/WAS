@@ -1,7 +1,11 @@
 package util;
 
+import http.HttpRequest;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Map;
 
 import util.HttpRequestUtils.Pair;
@@ -11,7 +15,34 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-public class HttpRequestUtilsTest {
+public class HttpRequestTest {
+
+    private String testDirectory = "./src/test/resources/";
+
+    @Test
+    public void request_GET() throws Exception {
+        InputStream in = new FileInputStream(new File(testDirectory + "Http_GET.txt"));
+        HttpRequest request = new HttpRequest(in);
+
+        assertEquals("GET", request.getRequestMethod());
+        assertEquals("/user/create", request.getRequestPath());
+        assertEquals("keep-alive", request.getRequestHeader("Connection"));
+        assertEquals("javajigi", request.getRequestParam("userId"));
+    }
+
+
+    @Test
+    public void request_POST() throws Exception {
+        InputStream in = new FileInputStream(new File(testDirectory + "Http_POST.txt"));
+        HttpRequest request = new HttpRequest(in);
+
+        assertEquals("POST", request.getRequestMethod());
+        assertEquals("/user/create", request.getRequestPath());
+        assertEquals("keep-alive", request.getRequestHeader("Connection"));
+        assertEquals("javajigi", request.getRequestParam("userId"));
+    }
+
+
     @Test
     public void parseQueryString() {
         String queryString = "userId=javajigi";
@@ -74,7 +105,7 @@ public class HttpRequestUtilsTest {
     }
 
     @Test
-    public void getGetRequest () {
+    public void getGetRequest() {
         String getHeader = "GET /index.html HTTP/1.1";
         String url = HttpRequestUtils.getUrl(getHeader, " ");
         assertEquals("/index.html", url);
@@ -82,7 +113,7 @@ public class HttpRequestUtilsTest {
 
 
     @Test
-    public void getMethod () {
+    public void getMethod() {
         String header = "POST /user/create HTTP/1.1";
         String method = HttpRequestUtils.getMethod(header, " ");
 
