@@ -21,8 +21,8 @@ public class HttpRequest {
 
     private static BufferedReader bufferedReader;
 
-    private Map<String, String> requestHeader = new HashMap<>();
-    private Map<String, String> requestParameter = new HashMap<>();
+    private Map<String, String> requestHeader;
+    private Map<String, String> requestParameter;
 
     private String requestUrl;
     private String requestPath;
@@ -36,7 +36,15 @@ public class HttpRequest {
      */
     public HttpRequest(InputStream inputStream) throws IOException {
         bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+        requestHeader = new HashMap<>();
+        requestParameter = new HashMap<>();
+
         String lineOfMethodAndUrl = bufferedReader.readLine();
+
+        if (lineOfMethodAndUrl == null) {
+            return;
+        }
+
         log.debug("request line : {}", lineOfMethodAndUrl);
         this.setRequestUrl(lineOfMethodAndUrl);
         this.setRequestMethod(lineOfMethodAndUrl);
@@ -76,7 +84,8 @@ public class HttpRequest {
 
     private void setRequestParameter () throws IOException {
         if ("GET".equalsIgnoreCase(this.requestMethod)) {
-            this.requestParameter = HttpRequestUtils.parseQueryString(this.requestUrl.split("\\?")[1]);
+            this.requestParameter = this.requestUrl.contains("?")
+                    ? HttpRequestUtils.parseQueryString(this.requestUrl.split("\\?")[1]) : null;
         }
 
         if ("POST".equalsIgnoreCase(this.requestMethod)) {
