@@ -21,7 +21,7 @@ public class HttpRequest {
 
     private static BufferedReader bufferedReader;
 
-    private Map<String, String> requestHeader;
+    private Map<String, String> requestHeader = new HashMap<>();
     private Map<String, String> requestParameter;
 
     private String requestUrl;
@@ -35,8 +35,7 @@ public class HttpRequest {
      *  1) HTTP request 메서드, 2) HTTP request url, 3) HTTP request 헤더, 4) request Body 로 분리한다.
      */
     public HttpRequest(InputStream inputStream) throws IOException {
-        bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-        requestHeader = new HashMap<>();
+        bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
         requestParameter = new HashMap<>();
 
         String lineOfMethodAndUrl = bufferedReader.readLine();
@@ -50,7 +49,7 @@ public class HttpRequest {
         this.setRequestMethod(lineOfMethodAndUrl);
         this.setRequestPath();
 
-        this.setRequestHeader();
+        this.setRequestHeader(lineOfMethodAndUrl);
         this.setRequestParameter();
     }
 
@@ -66,19 +65,15 @@ public class HttpRequest {
         this.requestMethod = HttpRequestUtils.getMethod(lineOfMethodAndUrl, " ");
     }
 
-    private void setRequestHeader () throws IOException {
-        String line = null;
-        while(!"".equals(line)) {
+    private void setRequestHeader (String line) throws IOException {
+
+        while(!line.equals("")) {
             line = bufferedReader.readLine();
-            HttpRequestUtils.Pair pair = HttpRequestUtils.parseHeader(line);
-
-            if (pair == null) {
-                return;
-            }
-
-            requestHeader.put(pair.getKey(), pair.getValue());
-
             log.debug("request line : {}", line);
+            if (!line.equals("")) {
+                HttpRequestUtils.Pair pair = HttpRequestUtils.parseHeader(line);
+                requestHeader.put(pair.getKey().trim(), pair.getValue().trim());
+            }
         }
     }
 

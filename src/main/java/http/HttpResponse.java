@@ -17,11 +17,10 @@ import java.util.Map;
 public class HttpResponse {
     private static final Logger log = LoggerFactory.getLogger(HttpResponse.class);
     private static DataOutputStream dataOutputStream ;
-    private Map<String, String> responseHeader;
+    private Map<String, String> responseHeader = new HashMap<>();;
 
     public HttpResponse (OutputStream outputStream) {
         dataOutputStream = new DataOutputStream(outputStream);
-        responseHeader = new HashMap<>();
     }
 
     public void foward (String url) throws IOException {

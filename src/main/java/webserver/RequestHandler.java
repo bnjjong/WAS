@@ -44,7 +44,7 @@ public class RequestHandler extends Thread {
 
             if ("GET".equals(method)) {
                 //HttpResponse httpResponse = new HttpResponse(out);
-                httpResponse.foward(path);
+                httpResponse.foward(path.trim());
             }
 
             /*if ("POST".equals(method)) {
